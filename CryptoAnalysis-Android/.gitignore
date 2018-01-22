@@ -1,0 +1,7 @@
+.classpath
+.project
+.settings/
+target/
+AndroidZooAPKs.csv
+AndroidZooAPIKey.txt
+*.iml
