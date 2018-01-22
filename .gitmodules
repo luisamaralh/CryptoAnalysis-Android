@@ -1,0 +1,6 @@
+[submodule "soot-infoflow-android"]
+	path = soot-infoflow-android
+	url = https://github.com/johspaeth/soot-infoflow-android
+[submodule "soot-infoflow"]
+	path = soot-infoflow
+	url = https://github.com/johspaeth/soot-infoflow
