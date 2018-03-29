@@ -4,3 +4,6 @@
 [submodule "soot-infoflow"]
 	path = soot-infoflow
 	url = https://github.com/johspaeth/soot-infoflow
+[submodule "CryptoAnalysis"]
+	path = CryptoAnalysis
+	url = https://github.com/CROSSINGTUD/CryptoAnalysis
