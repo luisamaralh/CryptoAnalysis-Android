@@ -22,19 +22,28 @@ public class Executor {
 	private static Set<File> started = Sets.newHashSet();
 	private static ThreadPoolExecutor executor;
 	private static String rulesDir;
+	private static String appsDir;
 	
 
 	public static void main(String... args) throws InterruptedException {
+		if(args.length == 0){
+			System.out.println("This prorgam expects four arguments in this order: \n");
+			System.out.println("1. the path to the android platform directory \n");
+			System.out.println("2. the path to the android applications to be analyzed \n");
+			System.out.println("3. the path to CrySL rules \n");
+			System.out.println("4. Timeout for the analysis of each application (in minutes) \n");
+		}
 		platformsDir = args[0];
-		timeoutTime = Integer.parseInt(args[1]);
+		appsDir = args[1];
 		rulesDir = args[2];
+		timeoutTime = Integer.parseInt(args[3]);
 		executor = new ThreadPoolExecutor(processors-1, processors, timeoutTime, TimeUnit.MINUTES,workQueue);
 		startProcesses();
 		executor.awaitTermination(30, TimeUnit.DAYS);
 	}
 
 	private static void startProcesses() {
-		File[] listFiles = Downloader.DOWNLOAD_DIRECTORY.listFiles();
+		File[] listFiles = new File(appsDir).listFiles();
 		for (final File file : listFiles) {
 			if(!started.add(file))
 				continue;
