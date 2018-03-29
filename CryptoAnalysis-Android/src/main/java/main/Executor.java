@@ -21,13 +21,13 @@ public class Executor {
 	private static LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();;
 	private static Set<File> started = Sets.newHashSet();
 	private static ThreadPoolExecutor executor;
-	private static String visualization;
+	private static String rulesDir;
 	
 
 	public static void main(String... args) throws InterruptedException {
 		platformsDir = args[0];
 		timeoutTime = Integer.parseInt(args[1]);
-		visualization = args[2];
+		rulesDir = args[2];
 		executor = new ThreadPoolExecutor(processors-1, processors, timeoutTime, TimeUnit.MINUTES,workQueue);
 		startProcesses();
 		executor.awaitTermination(30, TimeUnit.DAYS);
@@ -53,7 +53,7 @@ public class Executor {
 		String classpath = System.getProperty("java.class.path");
 		String javaHome = System.getProperty("java.home");
 		String[] command = new String[] { javaHome + File.separator + "bin" + File.separator + "java", "-Xmx8g", "-Xms1g",
-				"-Xss64m", "-cp", classpath, PerAPKAnalyzer.class.getName(), file.getAbsolutePath(), platformsDir, visualization };
+				"-Xss64m", "-cp", classpath, PerAPKAnalyzer.class.getName(), file.getAbsolutePath(), platformsDir, rulesDir };
 		System.out.println("Running command: " + Arrays.toString(command));
 		try {
 			ProcessBuilder pb = new ProcessBuilder(command);
