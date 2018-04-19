@@ -59,7 +59,7 @@ public class PerAPKAnalyzer {
 		Stopwatch callGraphWatch = Stopwatch.createStarted();
 
 		try {
-			Test.main(new String[] { args[0], args[1], "--notaintanalysis", "--callbackanalyzer", "FAST" });
+			Test.main(new String[] { args[0], args[1], "--notaintanalysis", "--callbackanalyzer", "DEFAULT" });
 		} catch (Exception e) {
 			PrintWriter writer = new PrintWriter(new FileOutputStream(new File("CallGraphGenerationExceptions.txt"), true));
 			writer.format("FlowDroid call graph generation crashed on %s", apkFile);
