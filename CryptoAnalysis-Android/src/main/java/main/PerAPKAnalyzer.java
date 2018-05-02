@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import javax.crypto.spec.PBEKeySpec;
+
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
@@ -137,6 +139,11 @@ public class PerAPKAnalyzer {
 		File emptyFilterFile = new File(getSummaryFile() + "AllSeeds.csv");
 		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(emptyFilter, emptyFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
 
+		PrefixFiler prefixFilter = new PrefixFiler( apkFile.getName());
+		File prefixFilterFile = new File(getSummaryFile() + "-app-prefix.csv");
+		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(prefixFilter, prefixFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+
+		
 		File detailedOutputFile = new File("target/reports/cognicrypt/" + apkFile.getName().replace(".apk", ".txt"));
 		detailedOutputFile.getParentFile().mkdirs();
 		scanner.getAnalysisListener().addReportListener(new CommandLineReporter(detailedOutputFile.getAbsolutePath(), getRules()));
@@ -150,9 +157,32 @@ public class PerAPKAnalyzer {
 
 		@Override
 		public String toString() {
+			return "PackageNamePrefixFilter";
+		}
+	}
+	
+
+	private static class PrefixFiler implements Predicate<AbstractError> {
+		final String packageNamePrefix;
+		public PrefixFiler(String name) {
+			String[] split = name.split("\\.");
+			if(split.length > 2){
+				packageNamePrefix = split[0] +"."+split[1];
+			} else{
+				packageNamePrefix = "EXCLUDE";
+			}
+		}
+
+		@Override
+		public boolean test(AbstractError t) {
+			return t.getErrorLocation().getMethod().getDeclaringClass().toString().startsWith(packageNamePrefix);
+		}
+
+		@Override
+		public String toString() {
 			return "AllSeeds";
 		}
-}
+	}
 	private static class Complementfilter implements Predicate<AbstractError> {
 			@Override
 			public boolean test(AbstractError t) {
