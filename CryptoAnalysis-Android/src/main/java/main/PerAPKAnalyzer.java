@@ -175,7 +175,7 @@ public class PerAPKAnalyzer {
 
 		@Override
 		public boolean test(AbstractError t) {
-			return t.getErrorLocation().getMethod().getDeclaringClass().toString().startsWith(packageNamePrefix);
+			return !t.getErrorLocation().getMethod().getDeclaringClass().toString().startsWith(packageNamePrefix);
 		}
 
 		@Override
