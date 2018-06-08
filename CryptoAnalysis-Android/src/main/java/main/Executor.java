@@ -29,7 +29,7 @@ public class Executor {
 		if(args.length == 0){
 			System.out.println("This prorgam expects four arguments in this order: \n");
 			System.out.println("1. the path to the android platform directory \n");
-			System.out.println("2. the path to the android applications to be analyzed \n");
+			System.out.println("2. the path to the folder containting the android applications to be analyzed \n");
 			System.out.println("3. the path to CrySL rules \n");
 			System.out.println("4. Timeout for the analysis of each application (in minutes) \n");
 		}
@@ -62,7 +62,7 @@ public class Executor {
 		String classpath = System.getProperty("java.class.path");
 		String javaHome = System.getProperty("java.home");
 		String[] command = new String[] { javaHome + File.separator + "bin" + File.separator + "java", "-Xmx8g", "-Xms1g",
-				"-Xss64m", "-cp", classpath, PerAPKAnalyzer.class.getName(), file.getAbsolutePath(), platformsDir, rulesDir };
+				"-Xss64m", "-cp", classpath, CogniCryptAndroid.class.getName(), file.getAbsolutePath(), platformsDir, rulesDir };
 		System.out.println("Running command: " + Arrays.toString(command));
 		try {
 			ProcessBuilder pb = new ProcessBuilder(command);

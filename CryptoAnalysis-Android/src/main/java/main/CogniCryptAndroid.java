@@ -10,33 +10,29 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import javax.crypto.spec.PBEKeySpec;
-
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 
-import boomerang.debugger.Debugger;
 import crypto.analysis.CryptoScanner;
 import crypto.analysis.errors.AbstractError;
 import crypto.reporting.CommandLineReporter;
 import crypto.rules.CryptSLRule;
 import crypto.rules.CryptSLRuleReader;
+import soot.MethodOrMethodContext;
+import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
-import soot.jimple.infoflow.android.TestApps.Test;
+import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
+import soot.jimple.infoflow.android.SetupApplication;
+import soot.jimple.toolkits.callgraph.ReachableMethods;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 import soot.jimple.toolkits.ide.icfg.JimpleBasedInterproceduralCFG;
-import typestate.TransitionFunction;
+import soot.util.queue.QueueReader;
 
-public class PerAPKAnalyzer {
+public class CogniCryptAndroid {
 
-	private static boolean runCryptoScanner;
-	private static boolean VISUALIZATION = false;
-	private static Debugger<TransitionFunction> debugger = (VISUALIZATION ? null : new Debugger<TransitionFunction>());
 	private static JimpleBasedInterproceduralCFG icfg;
-	private static File ideVizFile;
 	private static File apkFile;
 	private static long callGraphTime;
 	private static String RESOURCE_PATH = "rules/";
@@ -44,37 +40,22 @@ public class PerAPKAnalyzer {
 	private static CryptoScanner scanner;
 
 
-	public static Debugger<TransitionFunction> getDebugger() {
-		if (debugger == null) {
-			if (!ideVizFile.getParentFile().exists()) {
-				ideVizFile.getParentFile().mkdirs();
-			}
-//			debugger = new CryptoVizDebugger(ideVizFile, icfg);
-		}
-		return debugger;
-	}
-
 	public static void main(String... args) throws InterruptedException, IOException {
 		apkFile = new File(args[0]);
-		ideVizFile = new File("target/IDEViz/" + apkFile.getName().replace(".apk", ".viz"));
 		RESOURCE_PATH = args[2];
 		Stopwatch callGraphWatch = Stopwatch.createStarted();
 
 		try {
-			Test.main(new String[] { args[0], args[1], "--notaintanalysis", "--callbackanalyzer", "DEFAULT" });
+			InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
+			config.getAnalysisFileConfig().setAndroidPlatformDir(args[1]);
+			config.getAnalysisFileConfig().setTargetAPKFile(args[0]);
+			SetupApplication infoflow = new SetupApplication(config);
+			infoflow.constructCallgraph();
 		} catch (Exception e) {
 			PrintWriter writer = new PrintWriter(new FileOutputStream(new File("CallGraphGenerationExceptions.txt"), true));
 			writer.format("FlowDroid call graph generation crashed on %s", apkFile);
 			e.printStackTrace(writer);
 			writer.close();
-			String folder = apkFile.getParent();
-			String analyzedFolder = folder + File.separator + "flowdroid-crashed";
-			File dir = new File(analyzedFolder);
-			if (!dir.exists()) {
-				dir.mkdir();
-			}
-			File moveTo = new File(dir.getAbsolutePath() + File.separator + apkFile.getName());
-			Files.move(apkFile, moveTo);
 			return;
 		}
 		callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
@@ -88,14 +69,6 @@ public class PerAPKAnalyzer {
 			e.printStackTrace(writer);
 			writer.close();
 		}
-		String folder = apkFile.getParent();
-		String analyzedFolder = folder + File.separator + "analyzed" + (runCryptoScanner ? "" : "-no-crypto");
-		File dir = new File(analyzedFolder);
-		if (!dir.exists()) {
-			dir.mkdir();
-		}
-		File moveTo = new File(dir.getAbsolutePath() + File.separator + apkFile.getName());
-		Files.move(apkFile, moveTo);
 	}
 
 	protected static List<CryptSLRule> getRules() {
