@@ -9,8 +9,6 @@
   <modules>
     <module>CryptoAnalysis</module>
     <module>CryptoAnalysis-Android</module>
-    <module>soot-infoflow</module>
-    <module>soot-infoflow-android</module>
   </modules>
   <build>
     <plugins>

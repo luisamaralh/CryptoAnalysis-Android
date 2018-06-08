@@ -117,8 +117,8 @@ public class CogniCryptAndroid {
 		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(prefixFilter, prefixFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
 
 		
-		File detailedOutputFile = new File("target/reports/cognicrypt/" + apkFile.getName().replace(".apk", ".txt"));
-		detailedOutputFile.getParentFile().mkdirs();
+		File detailedOutputFile = new File("target/reports/cognicrypt/" + apkFile.getName().replace(".apk", "/"));
+		detailedOutputFile.mkdirs();
 		scanner.getAnalysisListener().addReportListener(new CommandLineReporter(detailedOutputFile.getAbsolutePath(), getRules()));
 		scanner.scan();
 	}
