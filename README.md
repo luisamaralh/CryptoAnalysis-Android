@@ -35,6 +35,6 @@ CogniCrypt_SAST for Android can be started via the class `main.CogniCryptAndroid
 java -cp CryptoAnalysis-Android/build/CryptoAnalysis-Android-1.0.0-jar-with-dependencies.jar -Xmx8g -Xss60m main.CogniCryptAndroid \
       <path-to-apk> <path-to-android-platforms> <path-to-crysl-rules-binary>
 ```
-The analysis generates an output folder in `target/reports/cognicrypt/<apk-filename>/`. The folder contains a file `CogniCrypt-Report.txt` along with the `.jimple` output of the classes the analysis found misuses in. 
+The analysis generates an output folder in `cognicrypt-reports/<apk-filename>/`. The folder contains a file `CogniCrypt-Report.txt` along with the `.jimple` output of the classes the analysis found misuses in. More information about the format of the report is provided [here](https://github.com/CROSSINGTUD/CryptoAnalysis/).
 
 Note, depending on the analyzed application, the analysis may require a lot of memory and a large stack size. Remember to set the necessary heap size (e.g. -Xmx8g) and stack size (e.g. -Xss60m).
