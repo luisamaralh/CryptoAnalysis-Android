@@ -28,7 +28,7 @@ Once build, a packaged  `jar` artifact including all dependency is found in `Cry
 
 CogniCrypt_SAST for Android can be started via the class `main.CogniCryptAndroid`. It requires three arguments in this order: 
 * The absolute path to the .apk file
-* The absolute path to the android SDK platforms
+* The absolute path to the android SDK platforms. The platforms are obtainable via [Android Studio](https://developer.android.com/studio/releases/platforms). Under the Android SDK location you find a folder `platforms`. Supply CogniCrypt_SAST with the path to this folder.
 * The absolute path to the directory of the CrySL rules (contents of file [JCA-CrySL-rules.zip](https://github.com/CROSSINGTUD/CryptoAnalysis/releases/tag/v1.0.0). More information about the format is found [here](https://github.com/CROSSINGTUD/CryptoAnalysis/).)
 
 ```
