@@ -29,7 +29,7 @@ Once build, a packaged  `jar` artifact including all dependency is found in `Cry
 CogniCrypt_SAST for Android can be started via the class `main.CogniCryptAndroid`. It requires three arguments in this order: 
 * The absolute path to the .apk file
 * The absolute path to the android SDK platforms
-* The absolute path to the CrySL rules in binary format (see description in Readme [here](https://github.com/CROSSINGTUD/CryptoAnalysis))
+* The absolute path to the directory of the CrySL rules (contents of file [JCA-CrySL-rules.zip](https://github.com/CROSSINGTUD/CryptoAnalysis/releases/tag/v1.0.0). More information about the format is found [here](https://github.com/CROSSINGTUD/CryptoAnalysis/).)
 
 ```
 java -cp CryptoAnalysis-Android/build/CryptoAnalysis-Android-1.0.0-jar-with-dependencies.jar -Xmx8g -Xss60m main.CogniCryptAndroid \
