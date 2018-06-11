@@ -100,24 +100,24 @@ public class CogniCryptAndroid {
 		};
 		
 		
-		addErrorReporter(new ErrorFilter("com.google."));
-		addErrorReporter(new ErrorFilter("com.google."));
-		addErrorReporter(new ErrorFilter("com.unity3d."));
-		addErrorReporter(new ErrorFilter("com.facebook.ads."));
-		addErrorReporter(new ErrorFilter("com.android."));
-		File compFilterOutputFile = new File(getSummaryFile() + "Complement.csv");
-		Complementfilter compFilter = new Complementfilter();
-		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(compFilter, compFilterOutputFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
-		NoFilter emptyFilter = new NoFilter();
-		File emptyFilterFile = new File(getSummaryFile() + "AllSeeds.csv");
-		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(emptyFilter, emptyFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
-
-		PrefixFiler prefixFilter = new PrefixFiler( apkFile.getName());
-		File prefixFilterFile = new File(getSummaryFile() + "-app-prefix.csv");
-		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(prefixFilter, prefixFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+//		addErrorReporter(new ErrorFilter("com.google."));
+//		addErrorReporter(new ErrorFilter("com.google."));
+//		addErrorReporter(new ErrorFilter("com.unity3d."));
+//		addErrorReporter(new ErrorFilter("com.facebook.ads."));
+//		addErrorReporter(new ErrorFilter("com.android."));
+//		File compFilterOutputFile = new File(getSummaryFile() + "Complement.csv");
+//		Complementfilter compFilter = new Complementfilter();
+//		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(compFilter, compFilterOutputFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+//		NoFilter emptyFilter = new NoFilter();
+//		File emptyFilterFile = new File(getSummaryFile() + "AllSeeds.csv");
+//		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(emptyFilter, emptyFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+//
+//		PrefixFiler prefixFilter = new PrefixFiler( apkFile.getName());
+//		File prefixFilterFile = new File(getSummaryFile() + "-app-prefix.csv");
+//		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(prefixFilter, prefixFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
 
 		
-		File detailedOutputFile = new File("target/reports/cognicrypt/" + apkFile.getName().replace(".apk", "/"));
+		File detailedOutputFile = new File("cognicrypt-reports/" + apkFile.getName().replace(".apk", "/"));
 		detailedOutputFile.mkdirs();
 		scanner.getAnalysisListener().addReportListener(new CommandLineReporter(detailedOutputFile.getAbsolutePath(), getRules()));
 		scanner.scan();
