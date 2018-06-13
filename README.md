@@ -7,16 +7,19 @@ It relies on [FlowDroid](https://github.com/secure-software-engineering/FlowDroi
 
 You can checkout a pre-compiled version of CogniCrypt_SAST for Android [here](https://github.com/CROSSINGTUD/CryptoAnalysis-Android/releases).
 
-## Checkout and Build
+## Checkout
+This repository uses git submodules, to checkout this repository use the following command for git
 
-### Prerequisite
+```git clone --recurse-submodules git@github.com:CROSSINGTUD/CryptoAnalysis-Android.git```
+
+ and Build
+
+### Prerequisite for Build
 
 The code of this repository depends on [FlowDroid](https://github.com/secure-software-engineering/FlowDroid) to be installed as a maven artifact on your machine.
 Follow the commands on their readme and run `mvn install` to install FlowDroid into your local maven repository.
 
-This repository uses git submodules, to checkout this repository use the following command for git
-
-```git clone --recurse-submodules git@github.com:CROSSINGTUD/CryptoAnalysis-Android.git```
+## Build
 
 CogniCrypt_SAST for Android uses maven as build tool. To compile this project `cd` into the newly checked out folder and run
 
