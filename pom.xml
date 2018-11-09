@@ -7,6 +7,7 @@
   <packaging>pom</packaging>
   <name>crypto-analysis-android-root</name>
   <modules>
+  	<module>Android-Init</module>
     <module>CryptoAnalysis</module>
     <module>CryptoAnalysis-Android</module>
   </modules>
