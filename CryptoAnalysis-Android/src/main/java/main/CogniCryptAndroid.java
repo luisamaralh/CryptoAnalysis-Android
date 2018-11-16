@@ -10,9 +10,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import crypto.analysis.CryptoScanner;
 import crypto.analysis.errors.AbstractError;
