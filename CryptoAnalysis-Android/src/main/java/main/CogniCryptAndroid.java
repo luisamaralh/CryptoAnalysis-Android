@@ -14,6 +14,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import boomerang.preanalysis.BoomerangPretransformer;
 import crypto.analysis.CryptoScanner;
 import crypto.analysis.errors.AbstractError;
 import crypto.reporting.CommandLineReporter;
@@ -84,6 +85,8 @@ public class CogniCryptAndroid {
 	}
 
 	private static void runCryptoAnalysis() {
+		BoomerangPretransformer.v().reset();
+		BoomerangPretransformer.v().apply();
 		icfg = new JimpleBasedInterproceduralCFG(false);
 		scanner = new CryptoScanner(getRules()) {
 
