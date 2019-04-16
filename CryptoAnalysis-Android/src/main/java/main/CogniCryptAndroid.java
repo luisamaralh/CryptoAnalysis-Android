@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import boomerang.callgraph.ObservableDynamicICFG;
+import boomerang.callgraph.ObservableICFG;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -33,7 +35,7 @@ import soot.util.queue.QueueReader;
 
 public class CogniCryptAndroid {
 
-	private static JimpleBasedInterproceduralCFG icfg;
+	private static ObservableICFG icfg;
 	private static File apkFile;
 	private static long callGraphTime;
 	private static String RESOURCE_PATH = "rules/";
@@ -87,8 +89,8 @@ public class CogniCryptAndroid {
 	private static void runCryptoAnalysis() {
 		BoomerangPretransformer.v().reset();
 		BoomerangPretransformer.v().apply();
-		icfg = new JimpleBasedInterproceduralCFG(false);
-		scanner = new CryptoScanner(getRules()) {
+		icfg = new ObservableDynamicICFG(false);
+		scanner = new CryptoScanner() {
 
 			@Override
 			public boolean isCommandLineMode() {
@@ -96,12 +98,16 @@ public class CogniCryptAndroid {
 			}
 
 			@Override
-			public BiDiInterproceduralCFG<Unit, SootMethod> icfg() {
+			public ObservableICFG<Unit, SootMethod> icfg() {
 				return icfg;
 			}
 
+			public boolean rulesInSrcFormat() {
+				return false;
+			}
 		};
-		
+
+
 		
 //		addErrorReporter(new ErrorFilter("com.google."));
 //		addErrorReporter(new ErrorFilter("com.google."));
@@ -123,7 +129,8 @@ public class CogniCryptAndroid {
 		File detailedOutputFile = new File("cognicrypt-reports/" + apkFile.getName().replace(".apk", "/"));
 		detailedOutputFile.mkdirs();
 		scanner.getAnalysisListener().addReportListener(new CommandLineReporter(detailedOutputFile.getAbsolutePath(), getRules()));
-		scanner.scan();
+		scanner.scan(getRules());
+
 	}
 	private static class NoFilter implements Predicate<AbstractError> {
 		@Override
