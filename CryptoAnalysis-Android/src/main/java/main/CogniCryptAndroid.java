@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -26,6 +27,7 @@ import soot.MethodOrMethodContext;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.BreakpointStmt;
 import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
 import soot.jimple.infoflow.android.SetupApplication;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
@@ -65,7 +67,8 @@ public class CogniCryptAndroid {
 
 		System.out.println("Analyzing " + apkFile.getName());
 		try {
-			runCryptoAnalysis();
+			System.out.println(args[3]);
+			runCryptoAnalysis(args[3]);
 		} catch (Exception e) {
 			PrintWriter writer = new PrintWriter(new FileOutputStream(new File("CryptoAnalysisExceptions.txt"), true));
 			writer.format("CryptoAnalysis crashed on %s", apkFile);
@@ -86,7 +89,8 @@ public class CogniCryptAndroid {
 		return rules;
 	}
 
-	private static void runCryptoAnalysis() {
+	private static void runCryptoAnalysis(String type) {
+		PureReporter report = null;
 		BoomerangPretransformer.v().reset();
 		BoomerangPretransformer.v().apply();
 		icfg = new ObservableDynamicICFG(false);
@@ -108,28 +112,40 @@ public class CogniCryptAndroid {
 		};
 
 
-		
-//		addErrorReporter(new ErrorFilter("com.google."));
-//		addErrorReporter(new ErrorFilter("com.google."));
-//		addErrorReporter(new ErrorFilter("com.unity3d."));
-//		addErrorReporter(new ErrorFilter("com.facebook.ads."));
-//		addErrorReporter(new ErrorFilter("com.android."));
-//		File compFilterOutputFile = new File(getSummaryFile() + "Complement.csv");
-//		Complementfilter compFilter = new Complementfilter();
-//		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(compFilter, compFilterOutputFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
-//		NoFilter emptyFilter = new NoFilter();
-//		File emptyFilterFile = new File(getSummaryFile() + "AllSeeds.csv");
-//		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(emptyFilter, emptyFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
-//
-//		PrefixFiler prefixFilter = new PrefixFiler( apkFile.getName());
-//		File prefixFilterFile = new File(getSummaryFile() + "-app-prefix.csv");
-//		scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(prefixFilter, prefixFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+		switch (type){
+			case "csv": {
 
-		
-		File detailedOutputFile = new File("cognicrypt-reports/" + apkFile.getName().replace(".apk", "/"));
-		detailedOutputFile.mkdirs();
-		scanner.getAnalysisListener().addReportListener(new CommandLineReporter(detailedOutputFile.getAbsolutePath(), getRules()));
+
+				addErrorReporter(new ErrorFilter("com.google."));
+				addErrorReporter(new ErrorFilter("com.google."));
+				addErrorReporter(new ErrorFilter("com.unity3d."));
+				addErrorReporter(new ErrorFilter("com.facebook.ads."));
+				addErrorReporter(new ErrorFilter("com.android."));
+				File compFilterOutputFile = new File(getSummaryFile() + "Complement.csv");
+				Complementfilter compFilter = new Complementfilter();
+				scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(compFilter, compFilterOutputFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+				NoFilter emptyFilter = new NoFilter();
+				File emptyFilterFile = new File(getSummaryFile() + "AllSeeds.csv");
+				scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(emptyFilter, emptyFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+
+				PrefixFiler prefixFilter = new PrefixFiler(apkFile.getName());
+				File prefixFilterFile = new File(getSummaryFile() + "-app-prefix.csv");
+				scanner.getAnalysisListener().addReportListener(new FilteredCSVReporter(prefixFilter, prefixFilterFile.getAbsolutePath(), apkFile.getName(), getRules(), callGraphTime));
+				break;
+			}
+			case "commandLine": {
+				File detailedOutputFile = new File("cognicrypt-reports/" + apkFile.getName().replace(".apk", "/"));
+				detailedOutputFile.mkdirs();
+
+				scanner.getAnalysisListener().addReportListener(new CommandLineReporter(detailedOutputFile.getAbsolutePath(), getRules()));
+				break;
+			}
+			case "pureReport":{
+				scanner.getAnalysisListener().addReportListener(new PureReporter(apkFile.getName(), getRules(), callGraphTime));
+			}
+		}
 		scanner.scan(getRules());
+
 
 	}
 	private static class NoFilter implements Predicate<AbstractError> {
