@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-public class PureReporter extends ErrorMarkerListener {
+public class SimpleReporter extends ErrorMarkerListener {
 
     private String name;
     private long callGraphConstructionTime;
@@ -36,7 +36,7 @@ public class PureReporter extends ErrorMarkerListener {
     private int seeds = 0;
 
 
-    public PureReporter (String name, List<CryptSLRule> rules, long callGraphConstructionTime){
+    public SimpleReporter(String name, List<CryptSLRule> rules, long callGraphConstructionTime){
         this.rules = rules;
         this.callGraphConstructionTime = callGraphConstructionTime;
         this.name = name;
