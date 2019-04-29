@@ -37,15 +37,9 @@ public class SparkExecutor {
         listFiles.stream().forEach(apk -> {
             try {
                 AnalysisResults res = SingleExecutor.run(apk.getAbsolutePath(), rulesDir, platformsDir);
-                System.out.println(res.getApplication());
-                System.out.println(res.getTime());
-
-                Map<CryptSLRule, Long> summary = res.getErrors().stream()
-                               .collect(Collectors.groupingBy(AbstractError::getRule, Collectors.counting()));
-
-                for(CryptSLRule r: summary.keySet()) {
-                    System.out.println(String.format("- %s %d", r.toString(), summary.get(r)));
-                }
+                System.out.println("Application: " + res.getApplication());
+                System.out.println("Analysis time: " + res.getTime());
+                System.out.println("Erros: " + res.getErrors().size());
             }
             catch(Exception e) {
                 System.err.println("Error processing " + apk.getName());

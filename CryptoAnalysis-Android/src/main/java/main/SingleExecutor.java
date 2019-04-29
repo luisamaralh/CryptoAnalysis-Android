@@ -32,14 +32,14 @@ public class SingleExecutor {
     private static Set<ErrorFilter> filters = Sets.newHashSet();
     private static CryptoScanner scanner;
 
-    public static AnalysisResults run(String app, String rules, String path) throws InterruptedException, IOException {
+    public static AnalysisResults run(String app, String rules, String platform) throws InterruptedException, IOException {
         apkFile = new File(app);
         RESOURCE_PATH = rules;
         Stopwatch callGraphWatch = Stopwatch.createStarted();
 
         try {
             InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
-            config.getAnalysisFileConfig().setAndroidPlatformDir(path);
+            config.getAnalysisFileConfig().setAndroidPlatformDir(platform);
             config.getAnalysisFileConfig().setTargetAPKFile(app);
             SetupApplication infoflow = new SetupApplication(config);
             infoflow.constructCallgraph();
@@ -52,6 +52,10 @@ public class SingleExecutor {
             return null;
         }
         callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
+
+        BoomerangPretransformer.v().reset();
+        BoomerangPretransformer.v().apply();
+        icfg = new ObservableDynamicICFG(false);
 
         scanner = new CryptoScanner() {
             @Override
