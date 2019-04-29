@@ -37,7 +37,6 @@ public class PureReporter extends ErrorMarkerListener {
 
 
     public PureReporter (String name, List<CryptSLRule> rules, long callGraphConstructionTime){
-
         this.rules = rules;
         this.callGraphConstructionTime = callGraphConstructionTime;
         this.name = name;

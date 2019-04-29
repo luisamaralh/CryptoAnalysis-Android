@@ -34,12 +34,12 @@ public class SingleExecutor {
 
     public static AnalysisResults run(String app, String rules, String path) throws InterruptedException, IOException {
         apkFile = new File(app);
-        RESOURCE_PATH = path;
+        RESOURCE_PATH = rules;
         Stopwatch callGraphWatch = Stopwatch.createStarted();
 
         try {
             InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
-            config.getAnalysisFileConfig().setAndroidPlatformDir(rules);
+            config.getAnalysisFileConfig().setAndroidPlatformDir(path);
             config.getAnalysisFileConfig().setTargetAPKFile(app);
             SetupApplication infoflow = new SetupApplication(config);
             infoflow.constructCallgraph();
@@ -48,6 +48,7 @@ public class SingleExecutor {
             writer.format("FlowDroid call graph generation crashed on %s", apkFile);
             e.printStackTrace(writer);
             writer.close();
+            e.printStackTrace();
             return null;
         }
         callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
