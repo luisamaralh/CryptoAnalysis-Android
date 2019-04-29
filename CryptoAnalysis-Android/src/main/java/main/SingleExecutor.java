@@ -28,13 +28,11 @@ public class SingleExecutor {
     private static ObservableICFG icfg;
     private static File apkFile;
     private static long callGraphTime;
-    private static String RESOURCE_PATH = "rules/";
     private static Set<ErrorFilter> filters = Sets.newHashSet();
     private static CryptoScanner scanner;
 
-    public static AnalysisResults run(String app, String rules, String platform) throws InterruptedException, IOException {
+    public static AnalysisResults run(String app, String rules, String platform) throws IOException {
         apkFile = new File(app);
-        RESOURCE_PATH = rules;
         Stopwatch callGraphWatch = Stopwatch.createStarted();
 
         try {
@@ -44,54 +42,19 @@ public class SingleExecutor {
             SetupApplication infoflow = new SetupApplication(config);
             infoflow.constructCallgraph();
         } catch (Exception e) {
-            PrintWriter writer = new PrintWriter(new FileOutputStream(new File("CallGraphGenerationExceptions.txt"), true));
-            writer.format("FlowDroid call graph generation crashed on %s", apkFile);
-            e.printStackTrace(writer);
-            writer.close();
-            e.printStackTrace();
+           AnalysisHelper.reportCallGraphError("CallGraphError.txt", "CallGraph crashes on %s", app);
             return null;
         }
         callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
 
-        BoomerangPretransformer.v().reset();
-        BoomerangPretransformer.v().apply();
-        icfg = new ObservableDynamicICFG(false);
+        scanner = AnalysisHelper.createCryptoScanner();
 
-        scanner = new CryptoScanner() {
-            @Override
-            public boolean isCommandLineMode() {
-                return true;
-            }
-
-            @Override
-            public ObservableICFG<Unit, SootMethod> icfg() {
-                return icfg;
-            }
-
-            public boolean rulesInSrcFormat() {
-                return false;
-            }
-        };
-
-        PureReporter report = new PureReporter(apkFile.getName(), getRules(), callGraphTime);
+        List<CryptSLRule> cslRules = AnalysisHelper.getRules(rules);
+        PureReporter report = new PureReporter(apkFile.getName(), cslRules, callGraphTime);
 
         scanner.getAnalysisListener().addReportListener(report);
-        scanner.scan(getRules());
+        scanner.scan(cslRules);
 
         return report.getResult();
     }
-
-    protected static List<CryptSLRule> getRules() {
-        LinkedList<CryptSLRule> rules = Lists.newLinkedList();
-
-        File[] listFiles = new File(RESOURCE_PATH).listFiles();
-        for (File file : listFiles) {
-            if (file.getName().endsWith(".cryptslbin")) {
-                rules.add(CryptSLRuleReader.readFromFile(file));
-            }
-        }
-        return rules;
-    }
-
-
 }

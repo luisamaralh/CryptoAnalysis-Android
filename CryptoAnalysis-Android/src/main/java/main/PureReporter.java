@@ -33,7 +33,7 @@ public class PureReporter extends ErrorMarkerListener {
     private Set<AbstractError> errors = Sets.newHashSet();
     private List<CryptSLRule> rules;
     private Set<SootMethod> dataflowReachableMethods = Sets.newHashSet();
-    private int seeds;
+    private int seeds = 0;
 
 
     public PureReporter (String name, List<CryptSLRule> rules, long callGraphConstructionTime){
