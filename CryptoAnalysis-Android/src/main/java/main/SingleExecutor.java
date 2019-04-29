@@ -53,7 +53,6 @@ public class SingleExecutor {
         callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
 
         scanner = new CryptoScanner() {
-
             @Override
             public boolean isCommandLineMode() {
                 return true;
@@ -68,6 +67,7 @@ public class SingleExecutor {
                 return false;
             }
         };
+
         PureReporter report = new PureReporter(apkFile.getName(), getRules(), callGraphTime);
 
         scanner.getAnalysisListener().addReportListener(report);
