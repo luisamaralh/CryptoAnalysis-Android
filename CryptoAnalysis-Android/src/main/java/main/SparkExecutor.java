@@ -1,18 +1,29 @@
 package main;
 
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SparkExecutor {
 
+    private static int processors = Runtime.getRuntime().availableProcessors();
     private static String platformsDir;
     private static String rulesDir;
     private static String appsDir;
     private static Set<File> started = Sets.newHashSet();
-    private static SingleExecutor executor;
+    private static SingleExecutor execute;
+    private static ThreadPoolExecutor executor;
+    private static int timeoutTime;
+    private static LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();;
+    private static PureReporter pureReporter;
 
     public static void main(String... args) throws InterruptedException{
 
@@ -26,49 +37,42 @@ public class SparkExecutor {
         platformsDir = args[0];
         appsDir = args[1];
         rulesDir = args[2];
+        timeoutTime = Integer.parseInt(args[3]);
+        executor = new ThreadPoolExecutor(processors-1, processors, timeoutTime, TimeUnit.MINUTES,workQueue);
         startProcesses();
     }
 
     private static void startProcesses() {
         File[] listFiles = new File(appsDir).listFiles();
         for (final File file : listFiles) {
+            if(!started.add(file))
+                continue;
             if (file.getName().endsWith(".apk") || file.getName().endsWith(".APK")) {
-                executor.run(file, );
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        startProcess(file);
+                    }
+                });
             }
-
-//            if(!started.add(file))
-//                continue;
-//            if (file.getName().endsWith(".apk") || file.getName().endsWith(".APK")) {
-//                executor.execute(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        startProcess(file);
-//                    }
-//                });
-//            }
         }
     }
 
-//    private static void startProcess(File file) {
-//        String classpath = System.getProperty("java.class.path");
-//        String javaHome = System.getProperty("java.home");
-//        String[] command = new String[] { javaHome + File.separator + "bin" + File.separator + "java", "-Xmx8g", "-Xms1g",
-//                "-Xss64m", "-cp", classpath, CogniCryptAndroid.class.getName(), file.getAbsolutePath(), platformsDir, rulesDir };
-//        System.out.println("Running command: " + Arrays.toString(command));
-//        try {
-//            ProcessBuilder pb = new ProcessBuilder(command);
-//            File reportsDir = new File("target/reports/");
-//            if (!reportsDir.exists())
-//                reportsDir.mkdirs();
-//            pb.redirectOutput(new File("target/reports/" + file.getName() + "-out.txt"));
-//            pb.redirectError(new File("target/reports/" + file.getName() + "-err.txt"));
-//            Process proc = pb.start();
-//
-//            startProcesses();
-//        } catch (IOException ex) {
-//            System.err.println("Could not execute timeout command: " + ex.getMessage());
-//            ex.printStackTrace();
-//        }
-//
-//    }
+
+    private static void startProcess(File file) {
+       
+        try {
+            execute.run(file.getName(), rulesDir, platformsDir);
+            System.out.println(pureReporter.getResult());
+            startProcesses();
+        } catch (IOException ex) {
+            System.err.println("Could not execute timeout command: " + ex.getMessage());
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
+            System.err.println("Process was interrupted: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+
+    }
+
 }
