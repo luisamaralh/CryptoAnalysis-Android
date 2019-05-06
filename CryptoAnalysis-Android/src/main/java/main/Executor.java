@@ -4,45 +4,30 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
-import android.zoo.Downloader;
 
 public class Executor {
 
-	private static int processors = Runtime.getRuntime().availableProcessors();
-	private static String platformsDir;
-	private static int timeoutTime;
-	private static LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();;
+
 	private static Set<File> started = Sets.newHashSet();
 	private static ThreadPoolExecutor executor;
-	private static String rulesDir;
-	private static String appsDir;
-	
 
-	public static void main(String... args) throws InterruptedException {
-		if(args.length == 0){
-			System.out.println("This prorgam expects four arguments in this order: \n");
-			System.out.println("1. the path to the android platform directory \n");
-			System.out.println("2. the path to the folder containting the android applications to be analyzed \n");
-			System.out.println("3. the path to CrySL rules \n");
-			System.out.println("4. Timeout for the analysis of each application (in minutes) \n");
-		}
-		platformsDir = args[0];
-		appsDir = args[1];
-		rulesDir = args[2];
-		timeoutTime = Integer.parseInt(args[3]);
-		executor = new ThreadPoolExecutor(processors-1, processors, timeoutTime, TimeUnit.MINUTES,workQueue);
-		startProcesses();
-		executor.awaitTermination(30, TimeUnit.DAYS);
+
+	public static void runExecutor(String platformsDir, String appsDir, String rulesDir, Integer timeoutTime) {
+
+
+		startProcesses(appsDir, platformsDir, rulesDir, timeoutTime);
+
 	}
 
-	private static void startProcesses() {
+	private static void startProcesses(String appsDir, String platformDir, String rulesDir, Integer timeoutTime) {
+
+
 		File[] listFiles = new File(appsDir).listFiles();
 		for (final File file : listFiles) {
 			if(!started.add(file))
@@ -51,14 +36,14 @@ public class Executor {
 				executor.execute(new Runnable() {
 					@Override
 					public void run() {
-						startProcess(file);
+						startProcess(file,appsDir, platformDir, rulesDir, timeoutTime);
 					}
 				});
 			}
 		}
 	}
 
-	private static void startProcess(File file) {
+	private static void startProcess(File file, String appsDir, String platformsDir, String rulesDir, Integer timeoutTime) {
 		String classpath = System.getProperty("java.class.path");
 		String javaHome = System.getProperty("java.home");
 		String[] command = new String[] { javaHome + File.separator + "bin" + File.separator + "java", "-Xmx8g", "-Xms1g",
@@ -86,7 +71,7 @@ public class Executor {
 				File moveTo = new File(dir.getAbsolutePath() + File.separator + file.getName());
 				Files.move(file, moveTo);
 			}
-			startProcesses();
+			startProcesses(appsDir, platformsDir, rulesDir, timeoutTime);
 		} catch (IOException ex) {
 			System.err.println("Could not execute timeout command: " + ex.getMessage());
 			ex.printStackTrace();

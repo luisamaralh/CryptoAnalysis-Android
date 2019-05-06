@@ -1,6 +1,5 @@
 package main;
 
-import fj.data.Java;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.spark.SparkConf;
@@ -13,26 +12,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class SparkExecutor {
-    private static String platformsDir;
-    private static String rulesDir;
-    private static String appsDir;
-    private static int timeoutTime;
 
-    public static void main(String... args) {
-        if(args.length == 0){
-            System.out.println("This prorgam expects four arguments in this order: \n");
-            System.out.println("1. the path to the android platform directory \n");
-            System.out.println("2. the path to the folder containting the android applications to be analyzed \n");
-            System.out.println("3. the path to CrySL rules \n");
-        }
-        platformsDir = args[0];
-        appsDir = args[1];
-        rulesDir = args[2];
-        timeoutTime = Integer.parseInt(args[3]);
-        startProcesses();
+
+    public static void runSpark(String platformsDir, String appsDir, String rulesDir) {
+
+    startProcesses(platformsDir, appsDir, rulesDir);
+
     }
 
-    private static void startProcesses() {
+    private static void startProcesses(String platformsDir, String appsDir, String rulesDir){
+
+        long startTime = System.currentTimeMillis();
         try {
             Logger.getLogger("org").setLevel(Level.OFF);
             Logger.getLogger("akka").setLevel(Level.OFF);
@@ -60,8 +50,12 @@ public class SparkExecutor {
 
             ctx.stop();
 
+            long endTime = System.currentTimeMillis();
+            long timeElapsed = endTime - startTime;
+
             summary.forEach(s -> System.out.println(s));
             System.out.println("Total analysis time " + time);
+            System.out.println("Execution time in milliseconds: " + timeElapsed);
         }
         catch(Exception e) {
             System.err.println("Error processing the apks");

@@ -35,7 +35,7 @@ import soot.util.queue.QueueReader;
 public class CogniCryptAndroid {
 
 
-	public static void main(String... args) throws IOException {
+	public static void run(String apkFile, String rules) throws IOException {
 		String apkFile = args[0];
 		String rules = args[2];
 
