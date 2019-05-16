@@ -1,9 +1,7 @@
 package main;
 
 import com.google.common.collect.Sets;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
+import org.apache.commons.cli.*;
 import scala.Int;
 
 import java.io.File;
@@ -15,88 +13,89 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class MainExecutor implements CommandLineParser{
+public class MainExecutor {
 
 
     private static int processors = Runtime.getRuntime().availableProcessors();
-    private static String platformsDir;
     private static int timeoutTime;
     private static LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>();;
     private static Set<File> started = Sets.newHashSet();
     private static ThreadPoolExecutor threadPoolExecutor;
-    private static String rulesDir;
-    private static String appsDir;
-
-    public static void main(option, String[]) throws InterruptedException {
-
-        SparkExecutor sparkExecutor = new SparkExecutor();
-        Executor executor = new Executor();
-        CogniCryptAndroid cogniCryptAndroid = new CogniCryptAndroid();
+    private String platformsDir;
+    private String rulesDir;
+    private String appsDir;
+    private boolean singleMode;
+    private Options options;
 
 
-        Options options = new Options();
-        options.addOption("e", "SingleExecutor", true, "Single execution.");
-        options.addOption("m", "MultipleExecultor", true, "Multiple Execution");
-        options.addOption("s", "SparkExecultor", true, "Spark Execution");
+    private void createOptions() {
+        options = new Options();
 
+        Option e = Option.builder("e")
+                        .required()
+                        .longOpt("execution-mode")
+                        .numberOfArgs(1)
+                        .desc("one of single-executor, multiple-executor, or spark-executor").build();
+        Option p = Option.builder()
+                        .required()
+                        .longOpt("platform-path")
+                        .numberOfArgs(1)
+                        .desc("path to the Android Platform")
+                        .build();
 
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("MainExecutor", options);
+        Option r = Option.builder()
+                        .required()
+                        .longOpt("rules-path")
+                        .numberOfArgs(1)
+                        .desc("path to the location of CrySL rules")
+                        .build();
 
+        Option a = Option.builder("a")
+                .required()
+                .longOpt("apk")
+                .numberOfArgs(1)
+                .desc("path to the app file or folder")
+                .build();
 
-        if (args.length == 0) {
-            System.out.println("This prorgam expects four arguments in this order: \n");
-            System.out.println("1. the path to the android platform directory \n");
-            System.out.println("2. the path to the folder containting the android applications to be analyzed \n");
-            System.out.println("3. the path to CrySL rules \n");
-        }
+        options.addOption(e);
+        options.addOption(p);
+        options.addOption(r);
+        options.addOption(a);
+
+    }
+    public static void main(String[] args) {
+        System.out.println("Running the executor");
+
+        MainExecutor m = new MainExecutor();
+
+        m.createOptions();
 
         CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse( options, args);
 
-        platformsDir = args[1];
-        appsDir = args[2];
-        rulesDir = args[3];
-        timeoutTime = Integer.parseInt(args[4]);
+        try {
+            CommandLine cmd = parser.parse(m.options, args);
 
-        System.out.println(platformsDir);
-        System.out.println(rulesDir);
-        System.out.println(appsDir);
-        System.out.println(timeoutTime);
+            m.platformsDir = cmd.getOptionValue("platform-path");
+            m.rulesDir = cmd.getOptionValue("rules-path");
+            m.appsDir = cmd.getOptionValue("apk");
 
-        if ("s".equals(options.toString())) {
-            sparkExecutor.runSpark(platformsDir, appsDir, rulesDir);
+            ExecutorData data = new ExecutorData(m.platformsDir, m.rulesDir, m.appsDir);
 
-            System.out.println("Passei aqui: Spark executor ");
-            threadPoolExecutor = new ThreadPoolExecutor(processors - 1, processors, timeoutTime, TimeUnit.MINUTES, workQueue);
-            executor.runExecutor(platformsDir, appsDir, rulesDir, timeoutTime);
-            threadPoolExecutor.awaitTermination(30, TimeUnit.DAYS);
-
-            try {
-                cogniCryptAndroid.run(appsDir, platformsDir, rulesDir);
-            } catch (IOException e) {
-                e.printStackTrace();
+            switch (cmd.getOptionValue("e")) {
+                case "multiple-executor" : (new Executor()).run(data); break;
+                case "spark-executor" : (new SparkExecutor()).run(data); break;
+                default: (new CogniCryptAndroid()).run(data);
             }
-        } else if ("m".equals(options)) {
-            System.out.println("Passei aqui: Multiple Executor");
-            threadPoolExecutor = new ThreadPoolExecutor(processors - 1, processors, timeoutTime, TimeUnit.MINUTES, workQueue);
-            executor.runExecutor(platformsDir, appsDir, rulesDir, timeoutTime);
-            threadPoolExecutor.awaitTermination(30, TimeUnit.DAYS);
 
-            try {
-                cogniCryptAndroid.run(appsDir, platformsDir, rulesDir);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else if ("e".equals(options)) {
-            System.out.println("Passei aqui: Single Executor");
-            try {
-                cogniCryptAndroid.run(appsDir, platformsDir, rulesDir);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         }
-
+        catch(ParseException e) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("MainExecutor", m.options);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

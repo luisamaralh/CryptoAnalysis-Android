@@ -9,9 +9,10 @@ import crypto.rules.CryptSLRule;
 import crypto.rules.CryptSLRuleReader;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
+import soot.jimple.infoflow.android.SetupApplication;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.LinkedList;
@@ -19,10 +20,22 @@ import java.util.List;
 
 public class AnalysisHelper {
 
-    public static void reportCallGraphError(String errorFile, String message, String apk) throws FileNotFoundException {
-        PrintWriter writer = new PrintWriter(new FileOutputStream(new File(errorFile), true));
-        writer.format(message, apk);
-        writer.close();
+    public static void initializeInfoFlow(String app, String platform) {
+        InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
+        config.getAnalysisFileConfig().setAndroidPlatformDir(platform);
+        config.getAnalysisFileConfig().setTargetAPKFile(app);
+        SetupApplication infoflow = new SetupApplication(config);
+        infoflow.constructCallgraph();
+    }
+
+    public static void reportCallGraphError(String errorFile, String message, String apk) {
+        try {
+            PrintWriter writer = new PrintWriter(new FileOutputStream(new File(errorFile), true));
+            writer.format(message, apk);
+            writer.close();
+        }catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static CryptoScanner createCryptoScanner() {

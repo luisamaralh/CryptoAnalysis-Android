@@ -11,17 +11,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class SparkExecutor {
+public class SparkExecutor implements IExecutor {
 
 
-    public static void runSpark(String platformsDir, String appsDir, String rulesDir) {
-
-    startProcesses(platformsDir, appsDir, rulesDir);
-
+    public void run(ExecutorData data) {
+        startProcesses(data.getPlatform(), data.getRulesDir(), data.getAppDir());
     }
 
-    private static void startProcesses(String platformsDir, String appsDir, String rulesDir){
-
+    private static void startProcesses(String platformsDir, String rulesDir, String appsDir){
         long startTime = System.currentTimeMillis();
         try {
             Logger.getLogger("org").setLevel(Level.OFF);
@@ -43,7 +40,8 @@ public class SparkExecutor {
             ctx.setLogLevel("OFF");
 
             JavaRDD<File> rddFiles = ctx.parallelize(listFiles);
-            JavaRDD<AnalysisResults> rddResults = rddFiles.map(f -> SingleExecutor.run(f.getAbsolutePath(), rulesDir, platformsDir));
+            JavaRDD<AnalysisResults> rddResults = rddFiles.map(f -> SingleExecutor.run(platformsDir, rulesDir, f.getAbsolutePath()))
+                                                          .filter(r -> r != null);
 
             Long time = rddResults.map(r -> r.getTime()).fold(new Long(0), (t1, t2) -> t1 + t2);
             List<String> summary = rddResults.map(r -> r.getApplication() + ", " + r.getErrors().size() + ", " + r.getTime()).collect();

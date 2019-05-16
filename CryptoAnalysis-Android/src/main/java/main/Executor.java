@@ -4,50 +4,65 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import org.apache.maven.shared.scriptinterpreter.RunErrorException;
 
 
-public class Executor {
-
-
+public class Executor implements IExecutor {
+    private static int processors = Runtime.getRuntime().availableProcessors();
+    private static LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>();
 	private static Set<File> started = Sets.newHashSet();
 	private static ThreadPoolExecutor executor;
 
+	private static final int TIMEOUT = 30;
 
-	public static void runExecutor(String platformsDir, String appsDir, String rulesDir, Integer timeoutTime) {
-
-
-		startProcesses(appsDir, platformsDir, rulesDir, timeoutTime);
-
+	public void run(ExecutorData data) {
+		long startTime = System.currentTimeMillis();
+		startProcesses(data.getPlatform(), data.getRulesDir(), data.getAppDir(), data.getTimeOut());
+		try {
+			int iteration = 1;
+			while(executor.getActiveCount() > 0) {
+				Thread.sleep(5000);
+				System.out.println("running: " + executor.getActiveCount());
+				System.out.println("seconds waiting: " + iteration * 5000);
+				iteration++;
+			}
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		long endTime = System.currentTimeMillis();
+		long timeElapsed = endTime - startTime;
+		System.out.println(timeElapsed);
+		System.exit(0);
 	}
 
-	private static void startProcesses(String appsDir, String platformDir, String rulesDir, Integer timeoutTime) {
-
-
-		File[] listFiles = new File(appsDir).listFiles();
-		for (final File file : listFiles) {
-			if(!started.add(file))
-				continue;
-			if (file.getName().endsWith(".apk") || file.getName().endsWith(".APK")) {
-				executor.execute(new Runnable() {
-					@Override
-					public void run() {
-						startProcess(file,appsDir, platformDir, rulesDir, timeoutTime);
-					}
-				});
-			}
-		}
+	public static void startProcesses(String platformDir, String rulesDir, String appsDir, Integer timeoutTime) {
+        executor = new ThreadPoolExecutor(processors - 1, processors, timeoutTime, TimeUnit.MINUTES, workQueue);
+        File[] listFiles = new File(appsDir).listFiles();
+        for (final File file : listFiles) {
+            if (!started.add(file))
+                continue;
+            if (file.getName().endsWith(".apk") || file.getName().endsWith(".APK")) {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        startProcess(file, appsDir, platformDir, rulesDir, timeoutTime);
+                    }
+                });
+            }
+        }
 	}
 
 	private static void startProcess(File file, String appsDir, String platformsDir, String rulesDir, Integer timeoutTime) {
 		String classpath = System.getProperty("java.class.path");
 		String javaHome = System.getProperty("java.home");
 		String[] command = new String[] { javaHome + File.separator + "bin" + File.separator + "java", "-Xmx8g", "-Xms1g",
-				"-Xss64m", "-cp", classpath, CogniCryptAndroid.class.getName(), file.getAbsolutePath(), platformsDir, rulesDir };
+				"-Xss64m", "-cp", classpath, CogniCryptAndroid.class.getName(), platformsDir, rulesDir, file.getAbsolutePath()};
 		System.out.println("Running command: " + Arrays.toString(command));
 		try {
 			ProcessBuilder pb = new ProcessBuilder(command);

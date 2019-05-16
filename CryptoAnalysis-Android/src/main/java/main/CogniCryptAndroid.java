@@ -1,60 +1,37 @@
 package main;
 
 import java.io.*;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
-import boomerang.callgraph.ObservableDynamicICFG;
-import boomerang.callgraph.ObservableICFG;
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import boomerang.preanalysis.BoomerangPretransformer;
 import crypto.analysis.CryptoScanner;
-import crypto.analysis.errors.AbstractError;
 import crypto.reporting.CommandLineReporter;
 import crypto.rules.CryptSLRule;
-import crypto.rules.CryptSLRuleReader;
-import soot.MethodOrMethodContext;
-import soot.Scene;
-import soot.SootMethod;
-import soot.Unit;
-import soot.jimple.BreakpointStmt;
-import soot.jimple.infoflow.android.InfoflowAndroidConfiguration;
-import soot.jimple.infoflow.android.SetupApplication;
-import soot.jimple.toolkits.callgraph.ReachableMethods;
-import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
-import soot.jimple.toolkits.ide.icfg.JimpleBasedInterproceduralCFG;
-import soot.util.queue.QueueReader;
+import org.apache.tools.ant.taskdefs.Exec;
 
-public class CogniCryptAndroid {
+public class CogniCryptAndroid implements IExecutor {
 
+	public static void main(String...args) {
+		CogniCryptAndroid app = new CogniCryptAndroid();
 
-	public static void run(String apkFile, String platformDir, String rules) throws IOException {
+		ExecutorData data = new ExecutorData(args[0], args[1], args[2]);
 
+		app.run(data);
+	}
 
+	public void run(ExecutorData data)  {
 		try {
-			InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
-			config.getAnalysisFileConfig().setAndroidPlatformDir(platformDir);
-			config.getAnalysisFileConfig().setTargetAPKFile(apkFile);
-			SetupApplication infoflow = new SetupApplication(config);
-			infoflow.constructCallgraph();
+			AnalysisHelper.initializeInfoFlow(data.getAppDir(), data.getPlatform());
 		} catch (Exception e) {
-			AnalysisHelper.reportCallGraphError("CallGraphExceptions.txt", "CallGaph crashed on %s" , apkFile);
+			AnalysisHelper.reportCallGraphError("CallGraphExceptions.txt", "CallGaph crashed on %s" , data.getAppDir());
 			return;
 		}
 
-		System.out.println("Analyzing " + apkFile);
+		System.out.println("Analyzing " + data.getAppDir());
 
 		try {
-			runCryptoAnalysis(apkFile, rules);
+			runCryptoAnalysis(data.getAppDir(), data.getRulesDir());
 		} catch (Exception e) {
-			AnalysisHelper.reportCallGraphError("CryptoAnalysisExceptions.txt", "CryptoAnalysis crashed on %s", apkFile);
+			AnalysisHelper.reportCallGraphError("CryptoAnalysisExceptions.txt", "CryptoAnalysis crashed on %s", data.getAppDir());
 		}
 	}
 

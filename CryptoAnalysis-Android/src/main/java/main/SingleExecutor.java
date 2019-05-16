@@ -22,30 +22,28 @@ public class SingleExecutor {
     private static Set<ErrorFilter> filters = Sets.newHashSet();
     private static CryptoScanner scanner;
 
-    public static AnalysisResults run(String app, String rules, String platform) throws IOException {
-        apkFile = new File(app);
-        Stopwatch callGraphWatch = Stopwatch.createStarted();
-
+    public static AnalysisResults run(String platform, String rules, String app) {
         try {
-            InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
-            config.getAnalysisFileConfig().setAndroidPlatformDir(platform);
-            config.getAnalysisFileConfig().setTargetAPKFile(app);
-            SetupApplication infoflow = new SetupApplication(config);
-            infoflow.constructCallgraph();
-        } catch (Exception e) {
-           AnalysisHelper.reportCallGraphError("CallGraphError.txt", "CallGraph crashes on %s", app);
+            apkFile = new File(app);
+
+            Stopwatch callGraphWatch = Stopwatch.createStarted();
+
+            AnalysisHelper.initializeInfoFlow(app, platform);
+
+            callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
+
+            scanner = AnalysisHelper.createCryptoScanner();
+
+            List<CryptSLRule> cslRules = AnalysisHelper.getRules(rules);
+            SimpleReporter report = new SimpleReporter(apkFile.getName(), cslRules, callGraphTime);
+
+            scanner.getAnalysisListener().addReportListener(report);
+            scanner.scan(cslRules);
+
+            return report.getResult();
+        } catch(Throwable t) {
+            AnalysisHelper.reportCallGraphError("CallGraphError.txt", "CallGraph crashes on %s", app);
             return null;
         }
-        callGraphTime = callGraphWatch.elapsed(TimeUnit.MILLISECONDS);
-
-        scanner = AnalysisHelper.createCryptoScanner();
-
-        List<CryptSLRule> cslRules = AnalysisHelper.getRules(rules);
-        SimpleReporter report = new SimpleReporter(apkFile.getName(), cslRules, callGraphTime);
-
-        scanner.getAnalysisListener().addReportListener(report);
-        scanner.scan(cslRules);
-
-        return report.getResult();
     }
 }
