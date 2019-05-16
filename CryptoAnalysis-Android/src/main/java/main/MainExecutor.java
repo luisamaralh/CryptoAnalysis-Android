@@ -1,11 +1,13 @@
 package main;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import scala.Int;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Time;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -13,7 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class MainExecutor {
+public class MainExecutor implements CommandLineParser{
 
 
     private static int processors = Runtime.getRuntime().availableProcessors();
@@ -25,11 +27,11 @@ public class MainExecutor {
     private static String rulesDir;
     private static String appsDir;
 
-    public static void main(String... args) throws InterruptedException {
+    public static void main(option, String[]) throws InterruptedException {
 
         SparkExecutor sparkExecutor = new SparkExecutor();
         Executor executor = new Executor();
-
+        CogniCryptAndroid cogniCryptAndroid = new CogniCryptAndroid();
 
 
         Options options = new Options();
@@ -48,29 +50,52 @@ public class MainExecutor {
             System.out.println("2. the path to the folder containting the android applications to be analyzed \n");
             System.out.println("3. the path to CrySL rules \n");
         }
-        platformsDir = args[0];
-        appsDir = args[1];
-        rulesDir = args[2];
-        timeoutTime = Integer.parseInt(args[3]);
 
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = parser.parse( options, args);
 
-        switch (options.toString()){
+        platformsDir = args[1];
+        appsDir = args[2];
+        rulesDir = args[3];
+        timeoutTime = Integer.parseInt(args[4]);
 
-            case("s"):{
-                sparkExecutor.runSpark(platformsDir, appsDir, rulesDir);
+        System.out.println(platformsDir);
+        System.out.println(rulesDir);
+        System.out.println(appsDir);
+        System.out.println(timeoutTime);
+
+        if ("s".equals(options.toString())) {
+            sparkExecutor.runSpark(platformsDir, appsDir, rulesDir);
+
+            System.out.println("Passei aqui: Spark executor ");
+            threadPoolExecutor = new ThreadPoolExecutor(processors - 1, processors, timeoutTime, TimeUnit.MINUTES, workQueue);
+            executor.runExecutor(platformsDir, appsDir, rulesDir, timeoutTime);
+            threadPoolExecutor.awaitTermination(30, TimeUnit.DAYS);
+
+            try {
+                cogniCryptAndroid.run(appsDir, platformsDir, rulesDir);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        } else if ("m".equals(options)) {
+            System.out.println("Passei aqui: Multiple Executor");
+            threadPoolExecutor = new ThreadPoolExecutor(processors - 1, processors, timeoutTime, TimeUnit.MINUTES, workQueue);
+            executor.runExecutor(platformsDir, appsDir, rulesDir, timeoutTime);
+            threadPoolExecutor.awaitTermination(30, TimeUnit.DAYS);
 
-            case("m"):{
-                threadPoolExecutor = new ThreadPoolExecutor(processors-1, processors, timeoutTime, TimeUnit.MINUTES,workQueue);
-                executor.runExecutor(platformsDir, appsDir, rulesDir, timeoutTime);
-                threadPoolExecutor.awaitTermination(30, TimeUnit.DAYS);
+            try {
+                cogniCryptAndroid.run(appsDir, platformsDir, rulesDir);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-            case("e"):{
-
+        } else if ("e".equals(options)) {
+            System.out.println("Passei aqui: Single Executor");
+            try {
+                cogniCryptAndroid.run(appsDir, platformsDir, rulesDir);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-
 
     }
 

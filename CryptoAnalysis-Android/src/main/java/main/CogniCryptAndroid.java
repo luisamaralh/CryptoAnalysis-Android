@@ -35,13 +35,12 @@ import soot.util.queue.QueueReader;
 public class CogniCryptAndroid {
 
 
-	public static void run(String apkFile, String rules) throws IOException {
-		String apkFile = args[0];
-		String rules = args[2];
+	public static void run(String apkFile, String platformDir, String rules) throws IOException {
+
 
 		try {
 			InfoflowAndroidConfiguration config = new InfoflowAndroidConfiguration();
-			config.getAnalysisFileConfig().setAndroidPlatformDir(args[1]);
+			config.getAnalysisFileConfig().setAndroidPlatformDir(platformDir);
 			config.getAnalysisFileConfig().setTargetAPKFile(apkFile);
 			SetupApplication infoflow = new SetupApplication(config);
 			infoflow.constructCallgraph();
